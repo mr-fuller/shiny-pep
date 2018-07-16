@@ -11,7 +11,7 @@ name = "pep/charagegroups"
 vars <- listCensusMetadata(name=name,vintage = vintage, type="variables")
 regions  <-  c("39095", "39173", "26115", "39123", "39143")
 #regions  <-  c("39095")
-pyramidestimate <- tibble()
+#pyramidestimate <- tibble()
 temp <- tibble()
 for (i in regions){
   temp <- as_tibble(getCensus(name=name,
@@ -21,6 +21,8 @@ for (i in regions){
                               regionin = paste("state:",substr(i,1,2))
                               ))
   temp$AGEGROUP <- as.numeric(temp$AGEGROUP)
+  #ages <- c()
+  #temp$AGEGROUP <- factor(temp$AGEGROUP,levels=ages)
   temp$POP <- as.numeric(temp$POP)
   #note that for sexes, 0=both, 1=male, 2=female
   temp <-  temp %>%  #male pop negative, female positive
@@ -29,7 +31,12 @@ for (i in regions){
     mutate(group_est = ifelse(SEX == '1',-POP,POP),
          SEX = ifelse(SEX == '1','Male','Female')) %>%
     arrange(state,county,SEX,HISP,RACE)
-    
+    #mutate(AGEGROUP = ifelse(AGEGROUP))
+   temp$AGEGROUP <- recode_factor(temp$AGEGROUP,
+    '1'="Under 5",'2'="5-9",'3'="10-14",'4'="15-19",'5'="20-24", '6'="25-29",
+    '7'="30-34",'8'="35-39",'9'="40-44",'10'="45-49",'11'="50-54",'12'="55-59",
+    '13'="60-64",'14'="65-69",'15'="70-74",'16'="75-79",'17'="80-84",'18'="85+")
+
            
 #View(temp)
   pyramid <- plot_ly(temp, x= temp$group_est,y = temp$AGEGROUP,color = temp$SEX, type = 'bar',
